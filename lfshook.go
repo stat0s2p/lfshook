@@ -17,7 +17,7 @@ var txtFormatter = &logrus.TextFormatter{DisableColors: true}
 
 // Map for linking a log level to a log file
 // Multiple levels may share a file, but multiple files may not be used for one level
-type PathMap map[logrus.Level]string
+type PathMap map[logrus.Level]func() string
 
 // Alternatively map a log level to an io.Writer
 type WriterMap map[logrus.Level]io.Writer
@@ -113,7 +113,7 @@ func (hook *lfsHook) ioWrite(entry *logrus.Entry) error {
 func (hook *lfsHook) fileWrite(entry *logrus.Entry) error {
 	var (
 		fd   *os.File
-		path string
+		path func() string
 		msg  []byte
 		err  error
 		ok   bool
@@ -127,7 +127,7 @@ func (hook *lfsHook) fileWrite(entry *logrus.Entry) error {
 		log.Println(err.Error())
 		return err
 	}
-	fd, err = os.OpenFile(path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+	fd, err = os.OpenFile(path(), os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
 	if err != nil {
 		log.Println("failed to open logfile:", path, err)
 		return err
